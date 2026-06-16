@@ -1,100 +1,59 @@
-import csv
-import os
+class Product:
+    def __init__(self, name, price, quantity):
+        self.name = name
+        self.price = price
+        self.quantity = quantity
 
-FILE_NAME = "students.csv"
-
-# Create file if not exists
-if not os.path.exists(FILE_NAME):
-    with open(FILE_NAME, "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Roll No", "Name", "Marks"])
+    def total_price(self):
+        return self.price * self.quantity
 
 
-def add_student():
-    roll = input("Enter Roll Number: ")
-    name = input("Enter Name: ")
-    marks = input("Enter Marks: ")
+class Bill:
+    def __init__(self, tax_rate=0.18):  # 18% GST
+        self.products = []
+        self.tax_rate = tax_rate
 
-    with open(FILE_NAME, "a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow([roll, name, marks])
+    def add_product(self, product):
+        self.products.append(product)
 
-    print("Student added successfully!\n")
+    def calculate_subtotal(self):
+        return sum(product.total_price() for product in self.products)
 
+    def calculate_tax(self):
+        return self.calculate_subtotal() * self.tax_rate
 
-def search_student():
-    roll = input("Enter Roll Number to Search: ")
-    found = False
+    def calculate_total(self):
+        return self.calculate_subtotal() + self.calculate_tax()
 
-    with open(FILE_NAME, "r") as file:
-        reader = csv.reader(file)
-        next(reader)  # Skip header
+    def display_bill(self):
+        print("\n" + "=" * 50)
+        print("               FINAL BILL")
+        print("=" * 50)
+        print(f"{'Product':<15}{'Price':<10}{'Qty':<10}{'Amount':<10}")
+        print("-" * 50)
 
-        for row in reader:
-            if row[0] == roll:
-                print("\nStudent Found:")
-                print("Roll No:", row[0])
-                print("Name:", row[1])
-                print("Marks:", row[2])
-                found = True
-                break
+        for product in self.products:
+            print(f"{product.name:<15}{product.price:<10}{product.quantity:<10}{product.total_price():<10}")
 
-    if not found:
-        print("Student not found!\n")
-
-
-def delete_student():
-    roll = input("Enter Roll Number to Delete: ")
-    students = []
-    found = False
-
-    with open(FILE_NAME, "r") as file:
-        reader = csv.reader(file)
-        students = list(reader)
-
-    with open(FILE_NAME, "w", newline="") as file:
-        writer = csv.writer(file)
-
-        for row in students:
-            if row[0] != roll:
-                writer.writerow(row)
-            else:
-                found = True
-
-    if found:
-        print("Student deleted successfully!\n")
-    else:
-        print("Student not found!\n")
+        print("-" * 50)
+        print(f"{'Subtotal':<35}{self.calculate_subtotal():.2f}")
+        print(f"{'Tax (18%)':<35}{self.calculate_tax():.2f}")
+        print(f"{'Grand Total':<35}{self.calculate_total():.2f}")
+        print("=" * 50)
 
 
-def display_all():
-    with open(FILE_NAME, "r") as file:
-        reader = csv.reader(file)
-        for row in reader:
-            print(row)
-    print()
+# Main Program
+bill = Bill()
 
+n = int(input("Enter number of products: "))
 
-while True:
-    print("===== Student Management System =====")
-    print("1. Add Student")
-    print("2. Search Student")
-    print("3. Delete Student")
-    print("4. Display All Students")
-    print("5. Exit")
+for i in range(n):
+    print(f"\nProduct {i+1}")
+    name = input("Enter product name: ")
+    price = float(input("Enter price: "))
+    quantity = int(input("Enter quantity: "))
 
-    choice = input("Enter your choice: ")
+    product = Product(name, price, quantity)
+    bill.add_product(product)
 
-    if choice == "1":
-        add_student()
-    elif choice == "2":
-        search_student()
-    elif choice == "3":
-        delete_student()
-    elif choice == "4":
-        display_all()
-    elif choice == "5":
-        print("Exiting program...")
-        break
-    else:
-        print("Invalid choice! Try again.\n")
+bill.display_bill()
